@@ -10,7 +10,6 @@ function [fitted, control_points] = bs_least_square_1(x, y, d, knots)
 %   - y: vector of y points.
 %   - d: order of the B-Spline base.
 %   - knots: knot vector of the B-Spline curve.
-%   - lambda: parameter value.
 %
 
 XData = [x y];
