@@ -1,8 +1,8 @@
-function [y_fit, err] = bs_least_square(x, y, d, knots, lambda)
+function [fitted, control_points] = bs_least_square_1(x, y, d, knots)
 % bs_least_square:
-%   Implementation of Least Square approximation by using B-Spline basis, 
+%   Implementation of Least Square approximation by using B-Spline basis,
 %   return the fitted curve on data poins [x, y].
-% 
+%
 % Syntax: [y_fit, err] = bs_least_square(x, y, d, knots, 0.005);
 %
 % Input:
@@ -13,39 +13,50 @@ function [y_fit, err] = bs_least_square(x, y, d, knots, lambda)
 %   - lambda: parameter value.
 %
 
-t = [repmat(knots(1), [1, d]), knots, repmat(knots(end), [1, d])];
+XData = [x y];
 
-ncoeff = numel(knots) + d - 1;
-B = zeros(numel(x), ncoeff);
-for j = 1 : ncoeff
-    B(:, j) = bspline_basis(j, d, t, x);
+% discrete parametrization
+e = 1;
+n = size(XData,1);
+u = zeros(n,1);
+u(1)=0;
+
+nominator = 0;
+denominator = 0;
+
+for j = 1:n-1
+    denominator = denominator + (norm(XData(j+1,:)-XData(j,:)))^e;
 end
 
+for i = 2:n
+    j=i-1;
+    nominator = nominator + (norm(XData(j+1,:)-XData(j,:)))^e;
+    
+    nextU=nominator/denominator;
+    u(i)=nextU;
+end
+
+% get B-spline basis 
+
+m=numel(u);
+B=zeros(m,numel(knots)- d);
+for i = 1 : numel(knots)- d
+    for j = 1:m
+        B(j,i) = bspline_basis(i-1,d,knots, u(j));
+    end
+end
+
+A = B' * B;
+
+% Estimate control points for x
+b = B' * x;
+x_fit = QR_solve(A,b);
+
+% Estimate control points for y
 b = B' * y;
-A = B' * B + lambda*eye(ncoeff);
+fitted = QR_solve(A,b);
 
-% Compute reduced QR factorization by Householder
-[houseQ, houseR] = qr(A);
-
-householdery = houseQ' * b;
-
-% Perform backward substitution
-% Store the dimensions of the upper triangular U
-[m,n]=size(houseR);
-
-% Initiate the zero colum vector
-x_fit=zeros(m,1);
-
-% Iterate over the rows
-for j=m:-1:1
-    % Compute the j-th entry of x
-    x_fit(j) = (householdery(j) - houseR(j, :)*x_fit) / houseR(j, j);
-end
-
-% evaluation
-y_fit = B * x_fit;
-
-err = abs(A * x_fit - b);
+control_points=[x_fit fitted];
 
 end
 
