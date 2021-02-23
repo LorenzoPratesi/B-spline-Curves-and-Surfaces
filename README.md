@@ -1,4 +1,4 @@
-# B-spline-Curves-and-Surfaces
+# B-spline Curves & Surfaces
 This repo holds some implementation and approximation of B-spline curves and surfaces.
 
 1. [Examples](example)
