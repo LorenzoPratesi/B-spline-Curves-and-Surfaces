@@ -9,3 +9,4 @@ This repo holds some implementation and approximation of B-spline curves and sur
 
 ## Least Square fitting B-spline surface
 ![alt text](images/19.png "Title")
+![alt text](images/21.png "Title")
